@@ -1,0 +1,57 @@
+<svg viewBox="0 0 1000 1400" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .interval-y { fill: #9eebcf; }
+    .interval-x { fill: #96ccff; }
+    .label {
+      fill: #333333;
+      font: 64px sans-serif;
+      text-anchor: middle;
+    }
+    .label * { dominant-baseline: central; }
+    .label-x { fill: #357edd; }
+    .label-y { fill: #19a974; }
+    .guide {
+      stroke: #ff80cc;
+      stroke-width: 5;
+    }
+  </style>
+
+  <rect x="300" y="5" width="400" height="90" class="interval-y" />
+
+  <g class="interval-x">
+    <rect x="5" y="105" width="195" height="90" />
+    <rect x="100" y="205" width="200" height="90" />
+    <rect x="200" y="305" width="200" height="90" />
+    <rect x="200" y="405" width="500" height="90" />
+    <rect x="200" y="505" width="600" height="90" />
+    <rect x="300" y="605" width="200" height="90" />
+    <rect x="300" y="705" width="400" height="90" />
+    <rect x="300" y="805" width="500" height="90" />
+    <rect x="400" y="905" width="200" height="90" />
+    <rect x="500" y="1005" width="200" height="90" />
+    <rect x="600" y="1105" width="200" height="90" />
+    <rect x="700" y="1205" width="200" height="90" />
+    <rect x="800" y="1305" width="195" height="90" />
+  </g>
+
+  <g class="guide">
+    <line x1="300" y1="0" x2="300" y2="1400" />
+    <line x1="700" y1="0" x2="700" y2="1400" />
+  </g>
+
+  <g class="label">
+    <text x="500" y="150"> <a class="label-x"> x </a> before <a class="label-y"> y </a> </text>
+    <text x="500" y="250"> <a class="label-x"> x </a> meets <a class="label-y"> y </a> </text>
+    <text x="500" y="350"> <a class="label-x"> x </a> overlaps <a class="label-y"> y </a> </text>
+    <text x="500" y="450"> <a class="label-x"> x </a> finished by <a class="label-y"> y </a> </text>
+    <text x="500" y="550"> <a class="label-x"> x </a> contains <a class="label-y"> y </a> </text>
+    <text x="500" y="650"> <a class="label-x"> x </a> starts <a class="label-y"> y </a> </text>
+    <text x="500" y="750"> <a class="label-x"> x </a> equal <a class="label-y"> y </a> </text>
+    <text x="500" y="850"> <a class="label-x"> x </a> started by <a class="label-y"> y </a> </text>
+    <text x="500" y="950"> <a class="label-x"> x </a> during <a class="label-y"> y </a> </text>
+    <text x="500" y="1050"> <a class="label-x"> x </a> finishes <a class="label-y"> y </a> </text>
+    <text x="500" y="1150"> <a class="label-x"> x </a> overlapped by <a class="label-y"> y </a> </text>
+    <text x="500" y="1250"> <a class="label-x"> x </a> met by <a class="label-y"> y </a> </text>
+    <text x="500" y="1350"> <a class="label-x"> x </a> after <a class="label-y"> y </a> </text>
+  </g>
+</svg>

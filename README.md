@@ -1,5 +1,6 @@
 # go-rampart
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/francesconi/go-rampart.svg)](https://pkg.go.dev/github.com/francesconi/go-rampart)
 ![github.com/francesconi/go-rampart](https://github.com/francesconi/go-rampart/workflows/test/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/francesconi/go-rampart)](https://goreportcard.com/report/github.com/francesconi/go-rampart)
 

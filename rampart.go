@@ -4,29 +4,177 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+// Relation represents how two Intervals relate to each other.
 type Relation int
 
 const (
 	RelationUnknown Relation = iota
+
+	/*
+		Interval x is before Interval y.
+
+		    +---+
+		    | x |
+		    +---+
+		          +---+
+		          | y |
+		          +---+
+	*/
 	RelationBefore
+
+	/*
+		Interval x meets Interval y.
+
+		    +---+
+		    | x |
+		    +---+
+		        +---+
+		        | y |
+		        +---+
+	*/
 	RelationMeets
+
+	/*
+		Interval x overlaps Interval y.
+
+		    +---+
+		    | x |
+		    +---+
+		      +---+
+		      | y |
+		      +---+
+	*/
 	RelationOverlaps
+
+	/*
+		Interval x is finished by Interval y.
+
+		    +-----+
+		    |  x  |
+		    +-----+
+		      +---+
+		      | y |
+		      +---+
+	*/
 	RelationFinishedBy
+
+	/*
+		Interval x contains Interval y.
+
+		    +-------+
+		    |   x   |
+		    +-------+
+		      +---+
+		      | y |
+		      +---+
+	*/
 	RelationContains
+
+	/*
+		Interval x starts Interval y.
+
+		    +---+
+		    | x |
+		    +---+
+		    +-----+
+		    |  y  |
+		    +-----+
+	*/
 	RelationStarts
+
+	/*
+		Interval x is equal to Interval y.
+
+		    +---+
+		    | x |
+		    +---+
+		    +---+
+		    | y |
+		    +---+
+	*/
 	RelationEqual
+
+	/*
+		Interval x is started by Interval y.
+
+		    +-----+
+		    |  x  |
+		    +-----+
+		    +---+
+		    | y |
+		    +---+
+	*/
 	RelationStartedBy
+
+	/*
+		Interval x is during Interval y.
+
+		      +---+
+		      | x |
+		      +---+
+		    +-------+
+		    |   y   |
+		    +-------+
+	*/
 	RelationDuring
+
+	/*
+		Interval x finishes Interval y.
+
+		      +---+
+		      | x |
+		      +---+
+		    +-----+
+		    |  y  |
+		    +-----+
+	*/
 	RelationFinishes
+
+	/*
+		Interval x is overlapped by Interval y.
+
+		      +---+
+		      | x |
+		      +---+
+		    +---+
+		    | y |
+		    +---+
+	*/
 	RelationOverlappedBy
+
+	/*
+		Interval x is met by Interval y.
+
+		        +---+
+		        | x |
+		        +---+
+		    +---+
+		    | y |
+		    +---+
+	*/
 	RelationMetBy
+
+	/*
+		Interval x is after Interval y.
+
+		          +---+
+		          | x |
+		          +---+
+		    +---+
+		    | y |
+		    +---+
+	*/
 	RelationAfter
 )
 
+// Interval represents two values, the lesser and the greater.
+// Both must be of the same ordered type.
 type Interval[T constraints.Ordered] struct {
 	x, y T
 }
 
+// NewInterval returns an Interval out of x and y so that the Interval
+// can be sorted on construction.
 func NewInterval[T constraints.Ordered](x, y T) Interval[T] {
 	if x < y {
 		return Interval[T]{x, y}
@@ -34,18 +182,24 @@ func NewInterval[T constraints.Ordered](x, y T) Interval[T] {
 	return Interval[T]{y, x}
 }
 
+// Lesser returns the lesser value from an Interval.
 func (i Interval[T]) Lesser() T {
 	return i.x
 }
 
+// Greater returns the greater value from an Interval.
 func (i Interval[T]) Greater() T {
 	return i.y
 }
 
+// IsEmpty returns true if the given Interval is empty, false otherwise.
+// An Interval is empty if its lesser equals its greater.
 func (i Interval[T]) IsEmpty() bool {
 	return i.x == i.y
 }
 
+// IsNonEmpty returns true if the given Interval is non-empty, false otherwise.
+// An Interval is non-empty if its lesser is not equal to its greater.
 func (i Interval[T]) IsNonEmpty() bool {
 	return !i.IsEmpty()
 }
@@ -53,62 +207,66 @@ func (i Interval[T]) IsNonEmpty() bool {
 type comparisonResult int
 
 const (
-	LT comparisonResult = iota
-	EQ
-	GT
+	lt comparisonResult = iota
+	eq
+	gt
 )
 
 func compare[T constraints.Ordered](x, y T) comparisonResult {
 	if x < y {
-		return LT
-	} else if x == y {
-		return EQ
-	} else {
-		return GT
+		return lt
 	}
+	if x == y {
+		return eq
+	}
+	return gt
 }
 
+// Relates tells you how Interval x relates to Interval y.
+// Consult the Relation documentation for an explanation
+// of all the possible results.
 func (x Interval[T]) Relate(y Interval[T]) Relation {
 	lxly := compare(x.Lesser(), y.Lesser())
 	lxgy := compare(x.Lesser(), y.Greater())
 	gxly := compare(x.Greater(), y.Lesser())
 	gxgy := compare(x.Greater(), y.Greater())
 	switch {
-	case lxly == EQ && gxgy == EQ:
+	case lxly == eq && gxgy == eq:
 		return RelationEqual
-	case gxly == LT:
+	case gxly == lt:
 		return RelationBefore
-	case lxly == LT && gxly == EQ && gxgy == LT:
+	case lxly == lt && gxly == eq && gxgy == lt:
 		return RelationMeets
-	case gxly == EQ:
+	case gxly == eq:
 		return RelationOverlaps
-	case lxly == GT && lxgy == EQ && gxgy == GT:
+	case lxly == gt && lxgy == eq && gxgy == gt:
 		return RelationMetBy
-	case lxgy == EQ:
+	case lxgy == eq:
 		return RelationOverlappedBy
-	case lxgy == GT:
+	case lxgy == gt:
 		return RelationAfter
-	case lxly == LT && gxgy == LT:
+	case lxly == lt && gxgy == lt:
 		return RelationOverlaps
-	case lxly == LT && gxgy == EQ:
+	case lxly == lt && gxgy == eq:
 		return RelationFinishedBy
-	case lxly == LT && gxgy == GT:
+	case lxly == lt && gxgy == gt:
 		return RelationContains
-	case lxly == EQ && gxgy == LT:
+	case lxly == eq && gxgy == lt:
 		return RelationStarts
-	case lxly == EQ && gxgy == GT:
+	case lxly == eq && gxgy == gt:
 		return RelationStartedBy
-	case lxly == GT && gxgy == LT:
+	case lxly == gt && gxgy == lt:
 		return RelationDuring
-	case lxly == GT && gxgy == EQ:
+	case lxly == gt && gxgy == eq:
 		return RelationFinishes
-	case lxly == GT && gxgy == GT:
+	case lxly == gt && gxgy == gt:
 		return RelationOverlappedBy
 	default:
 		return RelationUnknown
 	}
 }
 
+// Inverts a Relation. Every Relation has an inverse.
 func (r Relation) Invert() Relation {
 	switch r {
 	case RelationAfter:

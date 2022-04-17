@@ -2,6 +2,7 @@ package rampart
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -182,5 +183,20 @@ func TestInvert(t *testing.T) {
 	})
 	t.Run("inverts an invalid relation", func(t *testing.T) {
 		require.Equal(t, Relation(42).Invert(), RelationUnknown)
+	})
+}
+
+func TestCompare(t *testing.T) {
+	t.Run("compares time elements", func(t *testing.T) {
+		now := time.Now()
+		t.Run("lt", func(t *testing.T) {
+			require.Equal(t, lt, compare(now.Add(-time.Hour*1), now))
+		})
+		t.Run("eq", func(t *testing.T) {
+			require.Equal(t, eq, compare(now, now))
+		})
+		t.Run("gt", func(t *testing.T) {
+			require.Equal(t, gt, compare(now.Add(time.Hour*1), now))
+		})
 	})
 }

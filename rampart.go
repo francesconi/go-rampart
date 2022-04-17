@@ -1,6 +1,8 @@
 package rampart
 
 import (
+	"time"
+
 	"golang.org/x/exp/constraints"
 )
 
@@ -168,15 +170,15 @@ const (
 )
 
 // Interval represents two values, the lesser and the greater.
-// Both must be of the same ordered type.
-type Interval[T constraints.Ordered] struct {
+// Both must be either of the same ordered type or time type.
+type Interval[T constraints.Ordered | time.Time] struct {
 	x, y T
 }
 
 // NewInterval returns an Interval out of x and y so that the Interval
 // can be sorted on construction.
-func NewInterval[T constraints.Ordered](x, y T) Interval[T] {
-	if x < y {
+func NewInterval[T constraints.Ordered | time.Time](x, y T) Interval[T] {
+	if compare(x, y) == lt {
 		return Interval[T]{x, y}
 	}
 	return Interval[T]{y, x}
@@ -195,31 +197,13 @@ func (i Interval[T]) Greater() T {
 // IsEmpty returns true if the given Interval is empty, false otherwise.
 // An Interval is empty if its lesser equals its greater.
 func (i Interval[T]) IsEmpty() bool {
-	return i.x == i.y
+	return compare(i.x, i.y) == eq
 }
 
 // IsNonEmpty returns true if the given Interval is non-empty, false otherwise.
 // An Interval is non-empty if its lesser is not equal to its greater.
 func (i Interval[T]) IsNonEmpty() bool {
 	return !i.IsEmpty()
-}
-
-type comparisonResult int
-
-const (
-	lt comparisonResult = iota
-	eq
-	gt
-)
-
-func compare[T constraints.Ordered](x, y T) comparisonResult {
-	if x < y {
-		return lt
-	}
-	if x == y {
-		return eq
-	}
-	return gt
 }
 
 // Relates tells you how Interval x relates to Interval y.

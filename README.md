@@ -17,23 +17,39 @@ go get github.com/francesconi/go-rampart
 ## Examples
 
 ```go
-a := rampart.NewInterval(2, 3)
-b := rampart.NewInterval(3, 7)
+a := rampart.NewOrdInterval(2, 3)
+b := rampart.NewOrdInterval(3, 7)
 rel := a.Relate(b)
 // rel: RelationMeets
 ```
 
 ```go
-a := rampart.NewInterval(
+a := rampart.NewTimeInterval(
     time.Date(2022, time.April, 1, 0, 0, 0, 0, time.UTC),
     time.Date(2022, time.April, 8, 0, 0, 0, 0, time.UTC),
 )
-b := rampart.NewInterval(
+b := rampart.NewTimeInterval(
     time.Date(2022, time.April, 6, 0, 0, 0, 0, time.UTC),
     time.Date(2022, time.April, 15, 0, 0, 0, 0, time.UTC),
 )
 rel := a.Relate(b)
 // rel: RelationOverlaps
+```
+
+```go
+func cmp(x, y int) int {
+    if x < y {
+        return -1
+    }
+    if x == y {
+        return 0
+    }
+    return 1
+}
+a := rampart.NewIntervalFunc(2, 3, cmp)
+b := rampart.NewIntervalFunc(3, 7, cmp)
+rel := a.Relate(b)
+// rel: RelationMeets
 ```
 
 ![][interval relations]

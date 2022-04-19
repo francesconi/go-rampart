@@ -171,17 +171,42 @@ const (
 
 // Interval represents two values, the lesser and the greater.
 // Both must be either of the same ordered type or time type.
-type Interval[T constraints.Ordered | time.Time] struct {
+type Interval[T any] struct {
 	x, y T
+	cmp  func(T, T) int
 }
 
-// NewInterval returns an Interval out of x and y so that the Interval
-// can be sorted on construction.
-func NewInterval[T constraints.Ordered | time.Time](x, y T) Interval[T] {
-	if compare(x, y) == lt {
-		return Interval[T]{x, y}
+// NewIntervalFunc returns an Interval out of x and y so that the Interval
+// can be sorted on construction by the given comparison function.
+func NewIntervalFunc[T any](x, y T, cmp func(T, T) int) Interval[T] {
+	if cmp(x, y) < 0 {
+		return Interval[T]{x, y, cmp}
 	}
-	return Interval[T]{y, x}
+	return Interval[T]{y, x, cmp}
+}
+
+func NewOrdInterval[T constraints.Ordered](x, y T) Interval[T] {
+	return NewIntervalFunc(x, y, func(t1, t2 T) int {
+		if t1 < t2 {
+			return -1
+		}
+		if t1 == t2 {
+			return 0
+		}
+		return 1
+	})
+}
+
+func NewTimeInterval(x, y time.Time) Interval[time.Time] {
+	return NewIntervalFunc(x, y, func(t1, t2 time.Time) int {
+		if t1.Before(t2) {
+			return -1
+		}
+		if t1.Equal(t2) {
+			return 0
+		}
+		return 1
+	})
 }
 
 // Lesser returns the lesser value from an Interval.
@@ -197,7 +222,7 @@ func (i Interval[T]) Greater() T {
 // IsEmpty returns true if the given Interval is empty, false otherwise.
 // An Interval is empty if its lesser equals its greater.
 func (i Interval[T]) IsEmpty() bool {
-	return compare(i.x, i.y) == eq
+	return i.cmp(i.x, i.y) == 0
 }
 
 // IsNonEmpty returns true if the given Interval is non-empty, false otherwise.
@@ -210,40 +235,40 @@ func (i Interval[T]) IsNonEmpty() bool {
 // Consult the Relation documentation for an explanation
 // of all the possible results.
 func (x Interval[T]) Relate(y Interval[T]) Relation {
-	lxly := compare(x.Lesser(), y.Lesser())
-	lxgy := compare(x.Lesser(), y.Greater())
-	gxly := compare(x.Greater(), y.Lesser())
-	gxgy := compare(x.Greater(), y.Greater())
+	lxly := x.cmp(x.Lesser(), y.Lesser())
+	lxgy := x.cmp(x.Lesser(), y.Greater())
+	gxly := x.cmp(x.Greater(), y.Lesser())
+	gxgy := x.cmp(x.Greater(), y.Greater())
 	switch {
-	case lxly == eq && gxgy == eq:
+	case lxly == 0 && gxgy == 0:
 		return RelationEqual
-	case gxly == lt:
+	case gxly < 0:
 		return RelationBefore
-	case lxly == lt && gxly == eq && gxgy == lt:
+	case lxly < 0 && gxly == 0 && gxgy < 0:
 		return RelationMeets
-	case gxly == eq:
+	case gxly == 0:
 		return RelationOverlaps
-	case lxly == gt && lxgy == eq && gxgy == gt:
+	case lxly > 0 && lxgy == 0 && gxgy > 0:
 		return RelationMetBy
-	case lxgy == eq:
+	case lxgy == 0:
 		return RelationOverlappedBy
-	case lxgy == gt:
+	case lxgy > 0:
 		return RelationAfter
-	case lxly == lt && gxgy == lt:
+	case lxly < 0 && gxgy < 0:
 		return RelationOverlaps
-	case lxly == lt && gxgy == eq:
+	case lxly < 0 && gxgy == 0:
 		return RelationFinishedBy
-	case lxly == lt && gxgy == gt:
+	case lxly < 0 && gxgy > 0:
 		return RelationContains
-	case lxly == eq && gxgy == lt:
+	case lxly == 0 && gxgy < 0:
 		return RelationStarts
-	case lxly == eq && gxgy == gt:
+	case lxly == 0 && gxgy > 0:
 		return RelationStartedBy
-	case lxly == gt && gxgy == lt:
+	case lxly > 0 && gxgy < 0:
 		return RelationDuring
-	case lxly == gt && gxgy == eq:
+	case lxly > 0 && gxgy == 0:
 		return RelationFinishes
-	case lxly == gt && gxgy == gt:
+	case lxly > 0 && gxgy > 0:
 		return RelationOverlappedBy
 	default:
 		return RelationUnknown

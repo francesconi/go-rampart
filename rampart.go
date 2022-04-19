@@ -5,7 +5,7 @@ import (
 )
 
 // Interval represents two values, the lesser and the greater.
-// Both must be either of the same ordered type or time type.
+// Both must be of the same type.
 type Interval[T any] struct {
 	x, y T
 	cmp  func(T, T) int

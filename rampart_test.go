@@ -10,7 +10,7 @@ import (
 func TestTimeInterval(t *testing.T) {
 	now := time.Now()
 	a := NewIntervalFunc(now.Add(1000), now, func(t1, t2 time.Time) int { return int(t1.Sub(t2)) })
-	require.Equal(t, a.Lesser(), now)
+	require.Equal(t, now, a.Lesser())
 }
 
 func TestNewInterval(t *testing.T) {

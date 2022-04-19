@@ -1,172 +1,7 @@
 package rampart
 
 import (
-	"time"
-
 	"golang.org/x/exp/constraints"
-)
-
-// Relation represents how two Intervals relate to each other.
-type Relation int
-
-const (
-	RelationUnknown Relation = iota
-
-	/*
-		Interval x is before Interval y.
-
-		    +---+
-		    | x |
-		    +---+
-		          +---+
-		          | y |
-		          +---+
-	*/
-	RelationBefore
-
-	/*
-		Interval x meets Interval y.
-
-		    +---+
-		    | x |
-		    +---+
-		        +---+
-		        | y |
-		        +---+
-	*/
-	RelationMeets
-
-	/*
-		Interval x overlaps Interval y.
-
-		    +---+
-		    | x |
-		    +---+
-		      +---+
-		      | y |
-		      +---+
-	*/
-	RelationOverlaps
-
-	/*
-		Interval x is finished by Interval y.
-
-		    +-----+
-		    |  x  |
-		    +-----+
-		      +---+
-		      | y |
-		      +---+
-	*/
-	RelationFinishedBy
-
-	/*
-		Interval x contains Interval y.
-
-		    +-------+
-		    |   x   |
-		    +-------+
-		      +---+
-		      | y |
-		      +---+
-	*/
-	RelationContains
-
-	/*
-		Interval x starts Interval y.
-
-		    +---+
-		    | x |
-		    +---+
-		    +-----+
-		    |  y  |
-		    +-----+
-	*/
-	RelationStarts
-
-	/*
-		Interval x is equal to Interval y.
-
-		    +---+
-		    | x |
-		    +---+
-		    +---+
-		    | y |
-		    +---+
-	*/
-	RelationEqual
-
-	/*
-		Interval x is started by Interval y.
-
-		    +-----+
-		    |  x  |
-		    +-----+
-		    +---+
-		    | y |
-		    +---+
-	*/
-	RelationStartedBy
-
-	/*
-		Interval x is during Interval y.
-
-		      +---+
-		      | x |
-		      +---+
-		    +-------+
-		    |   y   |
-		    +-------+
-	*/
-	RelationDuring
-
-	/*
-		Interval x finishes Interval y.
-
-		      +---+
-		      | x |
-		      +---+
-		    +-----+
-		    |  y  |
-		    +-----+
-	*/
-	RelationFinishes
-
-	/*
-		Interval x is overlapped by Interval y.
-
-		      +---+
-		      | x |
-		      +---+
-		    +---+
-		    | y |
-		    +---+
-	*/
-	RelationOverlappedBy
-
-	/*
-		Interval x is met by Interval y.
-
-		        +---+
-		        | x |
-		        +---+
-		    +---+
-		    | y |
-		    +---+
-	*/
-	RelationMetBy
-
-	/*
-		Interval x is after Interval y.
-
-		          +---+
-		          | x |
-		          +---+
-		    +---+
-		    | y |
-		    +---+
-	*/
-	RelationAfter
 )
 
 // Interval represents two values, the lesser and the greater.
@@ -178,6 +13,16 @@ type Interval[T any] struct {
 
 // NewIntervalFunc returns an Interval out of x and y so that the Interval
 // can be sorted on construction by the given comparison function.
+//
+// The comparison function should return values as follows:
+//
+//    cmp(t1, t2) < 0 if t1 < t2
+//    cmp(t1, t2) > 0 if t1 > t2
+//    cmp(t1, t2) == 0 if t1 == t2
+//
+// For example, to compare time.Time instances,
+//
+//    NewIntervalFunc(t1, t2, func(t1, t2 time.Time) int { return int(t1.Sub(t2)) })
 func NewIntervalFunc[T any](x, y T, cmp func(T, T) int) Interval[T] {
 	if cmp(x, y) < 0 {
 		return Interval[T]{x, y, cmp}
@@ -185,24 +30,18 @@ func NewIntervalFunc[T any](x, y T, cmp func(T, T) int) Interval[T] {
 	return Interval[T]{y, x, cmp}
 }
 
-func NewOrdInterval[T constraints.Ordered](x, y T) Interval[T] {
+// NewInterval returns an Interval that uses the natural ordering of T for
+// comparison.
+func NewInterval[T constraints.Ordered](x, y T) Interval[T] {
+	// The entire comparison function could be just
+	//    return t1 - t2
+	// but strings are ordered, and subtraction doesn't make sense for
+	// them, so it has to be done manually.
 	return NewIntervalFunc(x, y, func(t1, t2 T) int {
 		if t1 < t2 {
 			return -1
 		}
 		if t1 == t2 {
-			return 0
-		}
-		return 1
-	})
-}
-
-func NewTimeInterval(x, y time.Time) Interval[time.Time] {
-	return NewIntervalFunc(x, y, func(t1, t2 time.Time) int {
-		if t1.Before(t2) {
-			return -1
-		}
-		if t1.Equal(t2) {
 			return 0
 		}
 		return 1
@@ -270,40 +109,6 @@ func (x Interval[T]) Relate(y Interval[T]) Relation {
 		return RelationFinishes
 	case lxly > 0 && gxgy > 0:
 		return RelationOverlappedBy
-	default:
-		return RelationUnknown
-	}
-}
-
-// Inverts a Relation. Every Relation has an inverse.
-func (r Relation) Invert() Relation {
-	switch r {
-	case RelationAfter:
-		return RelationBefore
-	case RelationBefore:
-		return RelationAfter
-	case RelationContains:
-		return RelationDuring
-	case RelationDuring:
-		return RelationContains
-	case RelationEqual:
-		return RelationEqual
-	case RelationFinishedBy:
-		return RelationFinishes
-	case RelationFinishes:
-		return RelationFinishedBy
-	case RelationMeets:
-		return RelationMetBy
-	case RelationMetBy:
-		return RelationMeets
-	case RelationOverlappedBy:
-		return RelationOverlaps
-	case RelationOverlaps:
-		return RelationOverlappedBy
-	case RelationStartedBy:
-		return RelationStarts
-	case RelationStarts:
-		return RelationStartedBy
 	default:
 		return RelationUnknown
 	}

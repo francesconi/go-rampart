@@ -2,14 +2,21 @@ package rampart
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
 
+func TestTimeInterval(t *testing.T) {
+	now := time.Now()
+	a := NewIntervalFunc(now.Add(1000), now, func(t1, t2 time.Time) int { return int(t1.Sub(t2)) })
+	require.Equal(t, a.Lesser(), now)
+}
+
 func TestNewInterval(t *testing.T) {
 	t.Run("sorts the tuple", func(t *testing.T) {
-		a := NewOrdInterval("a", "b")
-		b := NewOrdInterval("b", "a")
+		a := NewInterval("a", "b")
+		b := NewInterval("b", "a")
 		require.Equal(t, a.x, b.x)
 		require.Equal(t, a.y, b.y)
 	})
@@ -17,37 +24,37 @@ func TestNewInterval(t *testing.T) {
 
 func TestLesser(t *testing.T) {
 	t.Run("returns the lesser element", func(t *testing.T) {
-		require.Equal(t, "a", NewOrdInterval("a", "b").Lesser())
+		require.Equal(t, "a", NewInterval("a", "b").Lesser())
 	})
 }
 
 func TestGreater(t *testing.T) {
 	t.Run("returns the greater element", func(t *testing.T) {
-		require.Equal(t, "b", NewOrdInterval("a", "b").Greater())
+		require.Equal(t, "b", NewInterval("a", "b").Greater())
 	})
 }
 
 func TestIsEmpty(t *testing.T) {
 	t.Run("returns true when the interval is empty", func(t *testing.T) {
-		require.Equal(t, true, NewOrdInterval("a", "a").IsEmpty())
+		require.Equal(t, true, NewInterval("a", "a").IsEmpty())
 	})
 	t.Run("returns false when the interval is non-empty", func(t *testing.T) {
-		require.Equal(t, false, NewOrdInterval("a", "b").IsEmpty())
+		require.Equal(t, false, NewInterval("a", "b").IsEmpty())
 	})
 }
 
 func TestIsNonEmpty(t *testing.T) {
 	t.Run("returns false when the interval is empty", func(t *testing.T) {
-		require.Equal(t, false, NewOrdInterval("a", "a").IsNonEmpty())
+		require.Equal(t, false, NewInterval("a", "a").IsNonEmpty())
 	})
 	t.Run("returns true when the interval is non-empty", func(t *testing.T) {
-		require.Equal(t, true, NewOrdInterval("a", "b").IsNonEmpty())
+		require.Equal(t, true, NewInterval("a", "b").IsNonEmpty())
 	})
 }
 
 func relate(x1, y1 int) func(int, int) Relation {
 	return func(x2, y2 int) Relation {
-		return NewOrdInterval(x1, y1).Relate(NewOrdInterval(x2, y2))
+		return NewInterval(x1, y1).Relate(NewInterval(x2, y2))
 	}
 }
 

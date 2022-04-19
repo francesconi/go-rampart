@@ -1,8 +1,6 @@
 package rampart
 
 import (
-	"time"
-
 	"golang.org/x/exp/constraints"
 )
 
@@ -15,6 +13,16 @@ type Interval[T any] struct {
 
 // NewIntervalFunc returns an Interval out of x and y so that the Interval
 // can be sorted on construction by the given comparison function.
+//
+// The comparison function should return values as follows:
+//
+//    cmp(t1, t2) < 0 if t1 < t2
+//    cmp(t1, t2) > 0 if t1 > t2
+//    cmp(t1, t2) == 0 if t1 == t2
+//
+// For example, to compare time.Time instances,
+//
+//    NewIntervalFunc(t1, t2, func(t1, t2 time.Time) int { return int(t1.Sub(t2)) })
 func NewIntervalFunc[T any](x, y T, cmp func(T, T) int) Interval[T] {
 	if cmp(x, y) < 0 {
 		return Interval[T]{x, y, cmp}
@@ -25,6 +33,10 @@ func NewIntervalFunc[T any](x, y T, cmp func(T, T) int) Interval[T] {
 // NewInterval returns an Interval that uses the natural ordering of T for
 // comparison.
 func NewInterval[T constraints.Ordered](x, y T) Interval[T] {
+	// The entire comparison function could be just
+	//    return t1 - t2
+	// but strings are ordered, and subtraction doesn't make sense for
+	// them, so it has to be done manually.
 	return NewIntervalFunc(x, y, func(t1, t2 T) int {
 		if t1 < t2 {
 			return -1
@@ -34,18 +46,6 @@ func NewInterval[T constraints.Ordered](x, y T) Interval[T] {
 		}
 		return 1
 	})
-}
-
-// CompareTimes is a convience comparison function that is provided to
-// simplify usage of Intervals with time.Time instances.
-func CompareTimes(t1, t2 time.Time) int {
-	if t1.Before(t2) {
-		return -1
-	}
-	if t1.Equal(t2) {
-		return 0
-	}
-	return 1
 }
 
 // Lesser returns the lesser value from an Interval.

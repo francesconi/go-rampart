@@ -185,7 +185,9 @@ func NewIntervalFunc[T any](x, y T, cmp func(T, T) int) Interval[T] {
 	return Interval[T]{y, x, cmp}
 }
 
-func NewOrdInterval[T constraints.Ordered](x, y T) Interval[T] {
+// NewInterval returns an Interval that uses the natural ordering of T for
+// comparison.
+func NewInterval[T constraints.Ordered](x, y T) Interval[T] {
 	return NewIntervalFunc(x, y, func(t1, t2 T) int {
 		if t1 < t2 {
 			return -1
@@ -197,16 +199,16 @@ func NewOrdInterval[T constraints.Ordered](x, y T) Interval[T] {
 	})
 }
 
-func NewTimeInterval(x, y time.Time) Interval[time.Time] {
-	return NewIntervalFunc(x, y, func(t1, t2 time.Time) int {
-		if t1.Before(t2) {
-			return -1
-		}
-		if t1.Equal(t2) {
-			return 0
-		}
-		return 1
-	})
+// CompareTime is a convience comparison function that is provided to
+// simplify usage of Intervals with time.Time instances.
+func CompareTime(x, y time.Time) int {
+	if t1.Before(t2) {
+		return -1
+	}
+	if t1.Equal(t2) {
+		return 0
+	}
+	return 1
 }
 
 // Lesser returns the lesser value from an Interval.

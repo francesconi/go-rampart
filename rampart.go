@@ -38,7 +38,7 @@ func NewInterval[T constraints.Ordered](x, y T) Interval[T] {
 
 // CompareTime is a convience comparison function that is provided to
 // simplify usage of Intervals with time.Time instances.
-func CompareTime(x, y time.Time) int {
+func CompareTime(t1, t2 time.Time) int {
 	if t1.Before(t2) {
 		return -1
 	}

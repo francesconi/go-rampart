@@ -35,7 +35,7 @@ rel := a.Relate(b)
 ```go
 cmp(t1, t2) < 0 if t1 < t2
 cmp(t1, t2) > 0 if t1 > t2
-cmp(t1, t2) == 0 if t1 == t2`
+cmp(t1, t2) == 0 if t1 == t2
 ```
 
 #### time.Time

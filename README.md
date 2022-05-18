@@ -2,6 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/francesconi/go-rampart.svg)](https://pkg.go.dev/github.com/francesconi/go-rampart)
 ![github.com/francesconi/go-rampart](https://github.com/francesconi/go-rampart/workflows/test/badge.svg)
+[![Codecov](https://codecov.io/gh/francesconi/go-rampart/branch/main/graph/badge.svg?token=Y1G145SZB2)](https://codecov.io/gh/francesconi/go-rampart)
 [![Go Report Card](https://goreportcard.com/badge/github.com/francesconi/go-rampart)](https://goreportcard.com/report/github.com/francesconi/go-rampart)
 
 Go port of the [Haskell Rampart library](https://github.com/tfausak/rampart) by [Taylor Fausak](https://taylor.fausak.me/2020/03/13/relate-intervals-with-rampart).
@@ -16,12 +17,28 @@ go get github.com/francesconi/go-rampart
 
 ## Examples
 
+### Ordered types
+
+Any type that supports the operators `<` `<=` `>=` `>`.
+
 ```go
 a := rampart.NewInterval(2, 3)
 b := rampart.NewInterval(3, 7)
 rel := a.Relate(b)
 // rel: RelationMeets
 ```
+
+### Any other type
+
+`NewIntervalFunc` accepts any type as long as a comparison function is provided. The comparison function should return values as follows:
+
+```go
+cmp(t1, t2) < 0 if t1 < t2
+cmp(t1, t2) > 0 if t1 > t2
+cmp(t1, t2) == 0 if t1 == t2`
+```
+
+#### time.Time
 
 ```go
 func compareTimes(t1, t2 time.Time) int {

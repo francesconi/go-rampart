@@ -1,8 +1,6 @@
 package rampart
 
-import (
-	"golang.org/x/exp/constraints"
-)
+import "golang.org/x/exp/constraints"
 
 // Interval represents two values, the lesser and the greater.
 // Both must be of the same type.
